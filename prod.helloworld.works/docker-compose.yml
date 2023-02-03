@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  webizly:
+    image: kaw393939/webizly:production
+    container_name: webizly-production
+    pull_policy: always
+    restart: always
+    networks:
+       - traefik
+       - backend
+    ports:
+      - "8080"
+    environment:
+      - DEPLOYMENT=production
+      - DATABASE_URL=postgresql+psycopg2://production:production@postgres:5432/production
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "production"
+    labels:
+      - com.centurylinklabs.watchtower.enable=true
+      - traefik.enable=true
+      - traefik.docker.network=traefik
+      - traefik.http.routers.helloworld.rule=Host(`www.helloworld.works`) || Host(`helloworld.works`)
+      - traefik.http.routers.helloworld.entrypoints=https
+      - traefik.http.routers.helloworld.tls=true
+      - traefik.http.routers.helloworld.tls.certresolver=simple-resolver
+      - traefik.http.services.helloworld.loadbalancer.server.port=8080
+networks:
+  traefik:
+      name: traefik
+      external: true
+  backend:
+      name: backend
+      external: true
+
